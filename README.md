@@ -56,4 +56,4 @@ Open [http://localhost:3000](http://localhost:3000) in the browser to see the re
 ![dataloading](sample_screenshots/data_loading.png)
 <br/>
 <br/>
-![popup](sample_screenshots/pop_up_screen.png)
+![popup](sample_screenshots/pop_up_screen.jpg)
