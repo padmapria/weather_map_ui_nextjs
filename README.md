@@ -26,28 +26,29 @@ This project uses Bootstrap 5 to ensure perfect display on all devices:
 - Adaptive components
 - Responsive utility classes
 
-## Installation
+## Setup Instructions
 
-1. Clone the repository:
+### Clone the repository:
 ```bash
 git clone https://github.com/padmapria/weather_map_ui_nextjs.git
 cd weather_map_ui_nextjs
+```
 
-
-## install the dependencies
+### install the dependencies
+```
 npm run install
+```
 
 
-
-## Run the development server:
+### Run the application:
 
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in the browser to see the result.
 
-API Sources
-Singapore weather data: data.gov.sg
-Weather charts: open-meteo.com
-Map tiles: OpenStreetMap
+#### API Sources
+- Singapore weather data: data.gov.sg
+- Weather charts: open-meteo.com
+- Map tiles: OpenStreetMap
 
