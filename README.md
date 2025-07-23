@@ -4,11 +4,16 @@ A responsive weather mapping application built with Next.js that displays Singap
 
 ## Features
 
-- Interactive Leaflet map showing weather stations across Singapore
-- Real-time 2-hour weather forecast data
-- Detailed weather popups with current conditions, temperature/humidity trends, and mini location map
+- Interactive map with Leaflet.js showing all weather stations in singapore
+- Real-time 2-hour forecasts from data.gov.sg API
 - Fully responsive design using Bootstrap 5
-- Location search functionality
+- Location search functionality (yet to enhance)
+- Detailed popups with:
+  - Current weather conditions
+  - Weekly temperature/humidity trends
+  - Mini map of station location
+  - Today's average statistics
+  - Temperature and humidity charts using Chart.js
 
 ## Technologies Used
 
@@ -58,4 +63,10 @@ Open [http://localhost:3000](http://localhost:3000) in the browser to see the re
 <br/>
 #### popup screen
 <img width="3731" height="1949" alt="image" src="https://github.com/user-attachments/assets/0173d241-4c31-4c4a-b343-3eab7d32e6cb" />
+
+---
+### Potential Enhancements
+- Enhanced Search Functionality to open the popup
+- Logging and Exception Handling: Integrate comprehensive logging throughout the codebase and Improve exception handling to enhance code reliability and stability.
+---
 
