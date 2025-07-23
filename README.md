@@ -52,9 +52,8 @@ Open [http://localhost:3000](http://localhost:3000) in the browser to see the re
 - Weather charts: open-meteo.com
 - Map tiles: OpenStreetMap
 
-## Screenshots
-
-### Desktop View
-![dataloading](/sample_screenshots/desktop-view.png)
-
-![popup](/sample_screenshots/mobile-view.png)
+## Screenshots - Desktop View
+![dataloading](sample_screenshots/data_loading.png)
+<br/>
+<br/>
+![popup](sample_screenshots/pop_up_screen.png)
