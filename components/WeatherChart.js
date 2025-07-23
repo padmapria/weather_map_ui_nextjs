@@ -8,31 +8,21 @@ const WeatherChart = ({ weatherChartData }) => {
   useEffect(() => {
     if (!weatherChartData || !chartRef.current) return;
 
-    // Destroy previous chart instance if it exists
     if (chartInstance.current) {
       chartInstance.current.destroy();
-      chartInstance.current = null;
     }
 
-    const ctx = chartRef.current.getContext('2d');
-    if (!ctx) return;
-
-    // Create labels showing date only once per day
-    const labels = weatherChartData.hourly.time.map((time, index) => {
+    const labels = weatherChartData.hourly.time.map(time => {
       const date = new Date(time);
-      const currentDate = date.getDate();
-      
-      // Check if this is the first hour of the day (00:00)
-      if (date.getHours() === 0) {
-        return `${date.getDate()}/${date.getMonth() + 1}`;
-      }
-      return ''; // Empty string for other hours
+      return date.getHours() === 0 ? `${date.getDate()}/${date.getMonth()+1}` : '';
     });
 
+    const ctx = chartRef.current.getContext('2d');
+    
     chartInstance.current = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: labels,
+        labels,
         datasets: [
           {
             label: 'Temperature (°C)',
@@ -64,7 +54,16 @@ const WeatherChart = ({ weatherChartData }) => {
           intersect: false,
         },
         plugins: {
+          legend: {
+            position: 'top',
+          },
           tooltip: {
+            bodyFont: {
+          size: 14 // Increase tooltip font size
+        },
+        titleFont: {
+          size: 16 // Increase tooltip title font size
+        },
             callbacks: {
               title: (context) => {
                 const date = new Date(weatherChartData.hourly.time[context[0].dataIndex]);
@@ -77,57 +76,39 @@ const WeatherChart = ({ weatherChartData }) => {
                 });
               }
             }
-          },
-          legend: {
-            position: 'top',
-          },
+          }
+        },
+        layout: {
+          padding: {
+            right: 20 // Add padding to the right of the chart
+          }
         },
         scales: {
           x: {
             ticks: {
-              maxRotation: 45,
-              minRotation: 45,
-              autoSkip: false,
-              // Only show labels that aren't empty strings
-              callback: function(value, index) {
+              callback: function(val, index) {
                 return this.getLabelForValue(index) || null;
-              }
+              },
+              maxRotation: 45,
+              minRotation: 45
             },
             grid: {
               display: false
-            },
-            title: {
-              display: true,
-              text: 'Date'
             }
           },
           y: {
-            type: 'linear',
-            display: true,
-            position: 'left',
-            title: {
-              display: true,
-              text: 'Temperature (°C)'
-            },
+            title: { display: true, text: 'Temperature (°C)' },
             grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
+              drawBorder: false
             }
           },
           y1: {
-            type: 'linear',
-            display: true,
             position: 'right',
-            grid: {
-              drawOnChartArea: false,
-            },
-            title: {
-              display: true,
-              text: 'Humidity (%)'
-            },
+            title: { display: true, text: 'Humidity (%)' },
             min: 0,
             max: 100,
-            ticks: {
-              stepSize: 20
+            grid: {
+              drawBorder: false
             }
           }
         }
@@ -137,13 +118,16 @@ const WeatherChart = ({ weatherChartData }) => {
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();
-        chartInstance.current = null;
       }
     };
   }, [weatherChartData]);
 
   return (
-    <div style={{ position: 'relative', height: '450px', width: '100%' }}>
+    <div className="chart-container" style={{ 
+      height: '400px', 
+      width: '100%',
+      paddingRight: '20px' // Additional padding for the container
+    }}>
       <canvas ref={chartRef} />
     </div>
   );
