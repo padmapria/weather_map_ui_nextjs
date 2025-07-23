@@ -56,4 +56,6 @@ Open [http://localhost:3000](http://localhost:3000) in the browser to see the re
 ![dataloading](sample_screenshots/data_loading.png)
 <br/>
 <br/>
-![popup](sample_screenshots/pop_up_screen.jpg)
+#### popup screen
+<img width="3731" height="1949" alt="image" src="https://github.com/user-attachments/assets/0173d241-4c31-4c4a-b343-3eab7d32e6cb" />
+
