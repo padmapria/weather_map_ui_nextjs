@@ -12,7 +12,13 @@ A responsive weather mapping application built with Next.js that displays Singap
   - Custom current weather-condition markers (color-coded by forecast)
   - Today's average statistics of both temperature and humidity
   - Mini map of station location
-  - Weekly trends prediction chart for the next 7 days showing the humidity prediction (blue color) and temperature prediction (red color)
+  - Dynamic 7-Day Forecast
+      - Automatically fetches predictions from current date to next 7 days (Always shows current + next 6 days (never hardcoded dates))
+      - Dual-axis Chart.js visualization:
+        - **Temperature** (Red line, °C) 
+        - **Humidity** (Blue area, %)
+      - Responsive design adapts to all screen sizes
+      - Real-time data updates when refreshed
   - <img width="3731" height="1949" alt="image" src="https://github.com/user-attachments/assets/0173d241-4c31-4c4a-b343-3eab7d32e6cb" />
 
 
