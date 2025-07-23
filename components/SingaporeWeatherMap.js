@@ -70,11 +70,32 @@ const SingaporeWeatherMap = () => {
       .then(response => setWeatherData(response.data));
   }, []);
 
-  useEffect(() => {
-    axios.get('https://api.open-meteo.com/v1/forecast?latitude=1.29&longitude=103.85&hourly=temperature_2m,relativehumidity_2m&timezone=Asia%2FSingapore')
-      .then(response => setWeatherChartData(response.data))
-      .finally(() => setLoading(false));
-  }, []);
+useEffect(() => {
+  const formatDate = (date) => {
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
+
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setDate(startDate.getDate() + 7); // 7-day forecast
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `https://api.open-meteo.com/v1/forecast?latitude=1.29&longitude=103.85&hourly=temperature_2m,relativehumidity_2m&start_date=${formatDate(startDate)}&end_date=${formatDate(endDate)}&timezone=Asia%2FSingapore`
+      );
+      setWeatherChartData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch weather data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const handleMarkerClick = (area) => {
     const forecast = weatherData.items[0].forecasts.find(f => f.area === area.name);
@@ -121,54 +142,54 @@ const SingaporeWeatherMap = () => {
               position={[area.label_location.latitude, area.label_location.longitude]}
               eventHandlers={{ click: () => handleMarkerClick(area) }}
             >
-<Popup className="weather-popup" maxWidth={800}>
-  <div className="container-fluid p-3">
-    <div className="row g-3">
-      <div className="col-md-5">
-        <div className="weather-details-column p-3">
-          <h3>{area.name}</h3>
-          {selectedArea?.name === area.name && (
-            <>
-             <div className={`badge ${selectedArea.forecast.toLowerCase().includes('rain') ? 'bg-primary' : 'bg-success'} mb-2 fs-6 p-1`}>
-                {selectedArea.forecast}
-              </div>
-              <div className="weather-meta">
-                <p><strong>Updated:</strong> {new Date(selectedArea.updated).toLocaleTimeString()}</p>
-                <p><strong>Location:</strong> {area.label_location.latitude.toFixed(4)}, {area.label_location.longitude.toFixed(4)}</p>
-                <TemperatureDisplay weatherChartData={weatherChartData} />
-                <div className="mini-map-container mt-3">
-                  <MapContainer
-                    center={[area.label_location.latitude, area.label_location.longitude]}
-                    zoom={13}
-                    style={{ height: '150px', width: '100%' }}
-                    scrollWheelZoom={false}
-                    dragging={false}
-                    doubleClickZoom={false}
-                    zoomControl={false}
-                    attributionControl={false}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <Marker position={[area.label_location.latitude, area.label_location.longitude]} />
-                  </MapContainer>
+            <Popup className="weather-popup" maxWidth={800}>
+              <div className="container-fluid p-3">
+                <div className="row g-3">
+                  <div className="col-md-5">
+                    <div className="weather-details-column p-3">
+                      <h3>{area.name}</h3>
+                      {selectedArea?.name === area.name && (
+                        <>
+                        <div className={`badge ${selectedArea.forecast.toLowerCase().includes('rain') ? 'bg-primary' : 'bg-success'} mb-2 fs-6 p-1`}>
+                            {selectedArea.forecast}
+                          </div>
+                          <div className="weather-meta">
+                            <p><strong>Updated:</strong> {new Date(selectedArea.updated).toLocaleTimeString()}</p>
+                            <p><strong>Location:</strong> {area.label_location.latitude.toFixed(4)}, {area.label_location.longitude.toFixed(4)}</p>
+                            <TemperatureDisplay weatherChartData={weatherChartData} />
+                            <div className="mini-map-container mt-3">
+                              <MapContainer
+                                center={[area.label_location.latitude, area.label_location.longitude]}
+                                zoom={13}
+                                style={{ height: '150px', width: '100%' }}
+                                scrollWheelZoom={false}
+                                dragging={false}
+                                doubleClickZoom={false}
+                                zoomControl={false}
+                                attributionControl={false}
+                              >
+                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                <Marker position={[area.label_location.latitude, area.label_location.longitude]} />
+                              </MapContainer>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-md-7">
+                    <div className="chart-column p-3">
+                      <h4>Weekly Temperature / Humidity Trend</h4>
+                      {weatherChartData ? (
+                        <WeatherChart weatherChartData={weatherChartData} />
+                      ) : (
+                        <p>No weather data available</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </>
-          )}
-        </div>
-      </div>
-      <div className="col-md-7">
-        <div className="chart-column p-3">
-          <h4>Weekly Temperature / Humidity Trend</h4>
-          {weatherChartData ? (
-            <WeatherChart weatherChartData={weatherChartData} />
-          ) : (
-            <p>No weather data available</p>
-          )}
-        </div>
-      </div>
-    </div>
-  </div>
-</Popup>
+            </Popup>
             </Marker>
           ))}
         </MapContainer>
