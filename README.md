@@ -1,19 +1,36 @@
 # Weather Map UI with Next.js
 
-A responsive weather mapping application built with Next.js that displays Singapore's 2-hour weather forecast data on an interactive map.
+A responsive weather mapping application built with Next.js that displays Singapore's real time 2-hour weather forecast data on an interactive map powered by government APIs.
 
 ## Features
 
 - Interactive map with Leaflet.js showing all weather stations in singapore
 - Real-time 2-hour forecasts from data.gov.sg API
-- Fully responsive design using Bootstrap 5
+- Responsive Bootstrap 5 design 
 - Location search functionality (yet to enhance)
 - Detailed popups with:
-  - Current weather conditions
-  - Weekly temperature/humidity trends
+  - Custom current weather-condition markers (color-coded by forecast)
+  - Today's average statistics of both temperature and humidity
   - Mini map of station location
-  - Today's average statistics
-  - Temperature and humidity charts using Chart.js
+  - Weekly trends prediction chart for the next 7 days showing the humidity prediction (blue color) and temperature prediction (red color)
+  - <img width="3731" height="1949" alt="image" src="https://github.com/user-attachments/assets/0173d241-4c31-4c4a-b343-3eab7d32e6cb" />
+
+
+## APIs
+
+#### For 2hrs trend
+```
+'https://api.data.gov.sg/v1/environment/2-hour-weather-forecast'
+```
+#### For weekly trend
+```
+`https://api.open-meteo.com/v1/forecast?latitude=1.29&longitude=103.85&hourly=temperature_2m,relativehumidity_2m&timezone=Asia%2FSingapore`
+```
+#### API Sources
+- Singapore weather data: data.gov.sg
+- Weather charts: open-meteo.com
+- Map tiles: OpenStreetMap
+
 
 ## Technologies Used
 
@@ -52,10 +69,6 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in the browser to see the result.
 
-#### API Sources
-- Singapore weather data: data.gov.sg
-- Weather charts: open-meteo.com
-- Map tiles: OpenStreetMap
 
 ## Screenshots - Desktop View
 ![dataloading](sample_screenshots/data_loading.png)
