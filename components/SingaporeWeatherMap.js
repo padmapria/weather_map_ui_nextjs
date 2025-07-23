@@ -1,13 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import WeatherChart from './WeatherChart';
-import { useRef } from 'react';
 
-
-// Fix Leaflet marker icons
 if (typeof window !== 'undefined') {
   delete L.Icon.Default.prototype._getIconUrl;
   L.Icon.Default.mergeOptions({
@@ -16,6 +13,44 @@ if (typeof window !== 'undefined') {
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
   });
 }
+
+// Temperature display component (updated)
+const TemperatureDisplay = ({ weatherChartData }) => {
+  if (!weatherChartData || !weatherChartData.hourly) return null;
+
+  const today = new Date().toISOString().split('T')[0];
+  const { time, temperature_2m, relativehumidity_2m } = weatherChartData.hourly;
+
+  // Filter today's data
+  const todayData = time.map((t, i) => 
+    t.startsWith(today) ? {
+      temp: temperature_2m[i],
+      humidity: relativehumidity_2m[i]
+    } : null
+  ).filter(data => data !== null);
+
+  if (todayData.length === 0) return null;
+
+  // Calculate averages
+  const avgTemp = (todayData.reduce((sum, data) => sum + data.temp, 0) / todayData.length).toFixed(1);
+  const avgHumidity = (todayData.reduce((sum, data) => sum + data.humidity, 0) / todayData.length);
+  const roundedHumidity = Math.round(avgHumidity);
+
+  return (
+    <div className="temperature-display">
+      <h2>Today's Average Trend</h2>
+      <br/>
+      <div className="temp-value">
+        <span className="temp-figure">{avgTemp}°C</span>
+        <span className="temp-label"> Temperature</span>
+        <br/>
+        <br/>
+        <span className="temp-figure">{roundedHumidity}%</span>
+        <span className="temp-label"> Humidity</span>
+      </div>
+    </div>
+  );
+};
 
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
@@ -27,11 +62,10 @@ const SingaporeWeatherMap = () => {
   const [weatherChartData, setWeatherChartData] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  //For search data
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const mapRef = useRef(null);
-
+  const markerRefs = useRef({});
 
   useEffect(() => {
     axios.get('https://api.data.gov.sg/v1/environment/2-hour-weather-forecast')
@@ -41,7 +75,7 @@ const SingaporeWeatherMap = () => {
   }, []);
 
   useEffect(() => {
-    axios.get('https://api.open-meteo.com/v1/forecast?latitude=1.29&longitude=103.85&hourly=temperature_2m,relativehumidity_2m&timezone=Asia%2FSingapore&start_date=2025-07-07&end_date=2025-07-14')
+    axios.get('https://api.open-meteo.com/v1/forecast?latitude=1.29&longitude=103.85&hourly=temperature_2m,relativehumidity_2m&timezone=Asia%2FSingapore&start_date=2025-07-22&end_date=2025-07-29')
       .then(response => {
         setWeatherChartData(response.data);
       })
@@ -51,12 +85,31 @@ const SingaporeWeatherMap = () => {
   }, []);
 
   const handleMarkerClick = (area) => {
+    //alert(`handleMarkerClick called for: ${area.name}`);
     const forecast = weatherData.items[0].forecasts.find(f => f.area === area.name);
+    console.log('Forecast object:', forecast);
     setSelectedArea({
       ...area,
       forecast: forecast?.forecast || 'No data',
       updated: weatherData.items[0].update_timestamp
     });
+  };
+
+  const handleSearch = () => {
+    //alert(`Search triggered for: ${searchTerm}`);
+    const match = weatherData.area_metadata.find(area =>
+      area.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    //alert(match ? `Match found: ${match.name}` : 'No match found');
+    console.log('Match object:', match);
+   
+    if (match.name) {
+      // Set selected area and open popup
+      //handleMarkerClick(match);
+
+    } else {
+      alert("Location not found or map not ready.");
+    }
   };
 
   if (!weatherData) return <div className="loading">Loading weather data...</div>;
@@ -69,42 +122,41 @@ const SingaporeWeatherMap = () => {
 
       <div className="search-bar">
         <input
-            type="text"
-            placeholder="Search location..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => {
+          type="text"
+          placeholder="Search location..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={(e) => {
             if (e.key === 'Enter') {
-                const match = weatherData.area_metadata.find(area =>
-                area.name.toLowerCase().includes(searchTerm.toLowerCase())
-                );
-                if (match && mapRef.current) {
-                const { latitude, longitude } = match.label_location;
-                mapRef.current.flyTo([latitude, longitude], 14, { duration: 1.5 });
-                handleMarkerClick(match);
-                }
+              handleSearch();
             }
-            }}
+          }}
         />
-        </div>
-
+      </div>
 
       <div className="map-wrapper">
-        <MapContainer 
-          center={[1.3521, 103.8198]} 
-          zoom={12} 
+        <MapContainer
+          center={[1.3521, 103.8198]}
+          zoom={12}
           style={{ height: '100%', width: '100%' }}
-           whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
+          whenCreated={(mapInstance) => {
+            mapRef.current = mapInstance;
+            setMapLoaded(true);
+            console.log('Map loaded.');
+          }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; OpenStreetMap'
           />
-          
+
           {weatherData.area_metadata.map(area => (
             <Marker
               key={area.name}
               position={[area.label_location.latitude, area.label_location.longitude]}
+              ref={(ref) => {
+                if (ref) markerRefs.current[area.name] = ref;
+              }}
               eventHandlers={{ click: () => handleMarkerClick(area) }}
             >
               <Popup className="weather-popup" maxWidth={800}>
@@ -114,12 +166,17 @@ const SingaporeWeatherMap = () => {
                       <h3>{area.name}</h3>
                       <div className="weather-info">
                         <span className={`forecast-badge ${selectedArea?.forecast?.toLowerCase().includes('rain') ? 'rain' : ''}`}>
-                          {selectedArea?.name === area.name ? selectedArea.forecast : 'Click for details'}
+                          {selectedArea?.name === area.name
+                            ? selectedArea.forecast
+                            : 'Click for details'}
                         </span>
+
+
                         {selectedArea?.name === area.name && (
                           <div className="weather-meta">
                             <p><strong>Updated:</strong> {new Date(selectedArea.updated).toLocaleTimeString()}</p>
                             <p><strong>Location:</strong> {area.label_location.latitude.toFixed(4)}, {area.label_location.longitude.toFixed(4)}</p>
+                            <TemperatureDisplay weatherChartData={weatherChartData} />
                             <div className="mini-map-container">
                               <MapContainer
                                 center={[area.label_location.latitude, area.label_location.longitude]}
@@ -134,6 +191,7 @@ const SingaporeWeatherMap = () => {
                                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                                 <Marker position={[area.label_location.latitude, area.label_location.longitude]} />
                               </MapContainer>
+                              
                             </div>
                           </div>
                         )}
@@ -141,7 +199,7 @@ const SingaporeWeatherMap = () => {
                     </div>
 
                     <div className="chart-column">
-                      <h4>Hourly Weather</h4>
+                      <h4>Temperature / Humidity Trend</h4>
                       {loading ? (
                         <p>Loading chart data...</p>
                       ) : weatherChartData ? (
@@ -157,178 +215,6 @@ const SingaporeWeatherMap = () => {
           ))}
         </MapContainer>
       </div>
-
-      <style jsx global>{`
-        body {
-          margin: 0;
-          padding: 0;
-          overflow: hidden;
-          font-family: Arial, sans-serif;
-        }
-
-        .fullscreen-container {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .map-header {
-          position: relative;
-          z-index: 1000;
-          background: rgba(255,255,255,0.9);
-          padding: 12px 20px;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .map-header h1 {
-          margin: 0;
-          font-size: 1.2rem;
-          color: #333;
-        }
-
-        .map-wrapper {
-          flex: 1;
-          position: relative;
-        }
-
-        .loading {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background: rgba(255,255,255,0.8);
-          z-index: 1000;
-          font-size: 1.2rem;
-        }
-
-        .weather-popup .leaflet-popup-content-wrapper {
-          border-radius: 8px;
-          padding: 0;
-          border: 1px solid #ddd;
-          box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-          min-width: 300px;
-          width: auto !important;
-        }
-
-        .weather-popup .leaflet-popup-content {
-          margin: 0;
-          width: 100% !important;
-          min-height: 350px;
-        }
-
-        .popup-content {
-          padding: 15px;
-          height: 100%;
-        }
-
-        .popup-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-          height: 100%;
-        }
-
-        @media (min-width: 640px) {
-          .weather-popup .leaflet-popup-content-wrapper {
-            min-width: 650px;
-          }
-
-          .popup-grid {
-            flex-direction: row;
-          }
-        }
-
-        .weather-details-column {
-          flex: 1;
-          min-width: 200px;
-        }
-
-        .chart-column {
-          flex: 2;
-          min-width: 300px;
-        }
-
-        .popup-content h3 {
-          margin: 0 0 12px 0;
-          font-size: 18px;
-          color: #333;
-          font-weight: 600;
-        }
-
-        .forecast-badge {
-          display: inline-block;
-          padding: 8px 14px;
-          background: #4CAF50;
-          color: white;
-          border-radius: 20px;
-          font-size: 14px;
-          font-weight: 500;
-          margin-bottom: 12px;
-        }
-
-        .forecast-badge.rain {
-          background: #2196F3;
-        }
-
-        .weather-meta {
-          margin-top: 15px;
-        }
-
-        .weather-meta p {
-          margin: 6px 0;
-          font-size: 14px;
-          color: #555;
-          line-height: 1.4;
-        }
-
-        .weather-meta strong {
-          color: #333;
-          font-weight: 600;
-        }
-
-        .chart-column h4 {
-          margin: 0 0 10px 0;
-          font-size: 15px;
-          color: #555;
-          text-align: center;
-        }
-
-        .mini-map-container {
-          margin-top: 12px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          overflow: hidden;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .search-bar {
-            position: absolute;
-            top: 70px;
-            left: 20px;
-            z-index: 1100;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
-
-            .search-bar input {
-            padding: 6px 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            width: 200px;
-            }
-
-
-      `}</style>
     </div>
   );
 };
