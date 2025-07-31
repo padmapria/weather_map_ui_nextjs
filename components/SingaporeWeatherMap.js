@@ -15,6 +15,12 @@ if (typeof window !== 'undefined') {
   });
 }
 
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
+const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
+const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
+
+
 const TemperatureDisplay = ({ weatherChartData }) => {
   if (!weatherChartData || !weatherChartData.hourly) return null;
 
@@ -49,11 +55,6 @@ const TemperatureDisplay = ({ weatherChartData }) => {
     </div>
   );
 };
-
-const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
 
 const SingaporeWeatherMap = () => {
   const [weatherData, setWeatherData] = useState(null);
