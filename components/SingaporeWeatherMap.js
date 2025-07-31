@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import WeatherChart from './WeatherChart';
 
+//Leaflet Icon Configuration
 if (typeof window !== 'undefined') {
   delete L.Icon.Default.prototype._getIconUrl;
   L.Icon.Default.mergeOptions({
@@ -15,12 +16,13 @@ if (typeof window !== 'undefined') {
   });
 }
 
+//Dynamic Imports for Leaflet Components
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
 const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
 
-
+//TemperatureDisplay Component
 const TemperatureDisplay = ({ weatherChartData }) => {
   if (!weatherChartData || !weatherChartData.hourly) return null;
 
@@ -56,6 +58,7 @@ const TemperatureDisplay = ({ weatherChartData }) => {
   );
 };
 
+//Main Component: SingaporeWeatherMap
 const SingaporeWeatherMap = () => {
   const [weatherData, setWeatherData] = useState(null);
   const [weatherChartData, setWeatherChartData] = useState(null);
@@ -67,11 +70,13 @@ const SingaporeWeatherMap = () => {
   const markerRefs = useRef({});
 
   useEffect(() => {
+    // Fetches 2-hour weather forecast data from Singapore government API
     axios.get('https://api.data.gov.sg/v1/environment/2-hour-weather-forecast')
       .then(response => setWeatherData(response.data));
   }, []);
 
 useEffect(() => {
+  // Fetches 7-day forecast data from Open-Meteo API
   const formatDate = (date) => {
     return date.toISOString().split('T')[0]; // YYYY-MM-DD format
   };
@@ -99,6 +104,7 @@ useEffect(() => {
 
 
   const handleMarkerClick = (area) => {
+    // Finds forecast for clicked area and updates selectedArea state
     const forecast = weatherData.items[0].forecasts.find(f => f.area === area.name);
     setSelectedArea({
       ...area,
@@ -111,10 +117,12 @@ useEffect(() => {
 
   return (
     <div className="fullscreen-container">
+       {/* Header */}
       <header className="map-header bg-white p-3 shadow-sm">
         <h3 className="m-0">Singapore 2-Hour Weather Forecast</h3>
       </header>
 
+      {/* Search Bar */}
       <div className="search-bar position-absolute top-70 start-20 z-1100 bg-white p-2 rounded shadow-sm">
         <input
           type="text"
@@ -124,7 +132,7 @@ useEffect(() => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-
+       {/* Map Container */}
       <div className="map-wrapper">
         <MapContainer
           center={[1.3521, 103.8198]}
@@ -136,13 +144,15 @@ useEffect(() => {
           }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
+           {/* Markers for each area */}
           {weatherData.area_metadata.map(area => (
             <Marker
               key={area.name}
               position={[area.label_location.latitude, area.label_location.longitude]}
               eventHandlers={{ click: () => handleMarkerClick(area) }}
             >
+
+            {/* Popup with detailed weather information */}
             <Popup className="weather-popup" maxWidth={800}>
               <div className="container-fluid p-3">
                 <div className="row g-3">
@@ -158,6 +168,7 @@ useEffect(() => {
                             <p><strong>Updated:</strong> {new Date(selectedArea.updated).toLocaleTimeString()}</p>
                             <p><strong>Location:</strong> {area.label_location.latitude.toFixed(4)}, {area.label_location.longitude.toFixed(4)}</p>
                             <TemperatureDisplay weatherChartData={weatherChartData} />
+                            {/* Mini map showing the area */}
                             <div className="mini-map-container mt-3">
                               <MapContainer
                                 center={[area.label_location.latitude, area.label_location.longitude]}
@@ -179,6 +190,7 @@ useEffect(() => {
                     </div>
                   </div>
                   <div className="col-md-7">
+                    {/* Weather chart column */}
                     <div className="chart-column p-3">
                       <h4>Weekly Temperature / Humidity Trend</h4>
                       {weatherChartData ? (
